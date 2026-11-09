@@ -108,6 +108,23 @@ select {
 .btn-start:hover {
     background:var(--primary-hover);
 }
+.btn-pause {
+    padding:9px 20px;
+    font-size:1rem;
+    font-weight:bold;
+    color:#1e293b;
+    background:#e2e8f0;
+    border:1px solid #cbd5e1;
+    border-radius:6px;
+    cursor:pointer;
+}
+.btn-pause:hover:not(:disabled) {
+    background:#cbd5e1;
+}
+.btn-pause:disabled {
+    opacity:.5;
+    cursor:not-allowed;
+}
 .simulation-grid {
     display:grid;
     grid-template-columns:1fr;
@@ -328,7 +345,10 @@ canvas {
 
         <button id="start-btn" class="btn-start"
             onclick="initSimulation()">
-            実験開始
+            反応開始
+        </button>
+        <button id="pause-btn" class="btn-pause" onclick="togglePause()" disabled>
+            一時停止
         </button>
     </div>
 
@@ -476,6 +496,7 @@ const ION_R = 25;
 const HOLE_R = 10;
 
 let animId = null;
+let isPaused = false;
 
 let metalAtoms = [];
 let solutionIons = [];
@@ -512,6 +533,8 @@ function initSimulation() {
         animId = null;
     }
 
+    isPaused = false;
+
     selectedPlateKey =
         document.getElementById('metal-select').value;
 
@@ -546,16 +569,81 @@ function initSimulation() {
     createMetalAtoms(plate);
     createSolutionIons(solution, plate);
 
-    if (occursReaction) {
-        state = 'DIALOGUE';
-        showDialogue(plate, solution, true);
-    } else {
-        state = 'DIALOGUE';
-        showDialogue(plate, solution, false);
-    }
+    state = 'DIALOGUE';
+    showDialogue(plate, solution, occursReaction);
+
+    const pauseButton = document.getElementById('pause-btn');
+    pauseButton.disabled = false;
+    pauseButton.textContent = '一時停止';
 
     drawScene();
     loop();
+}
+
+// ページを開いただけでは反応を進めず、選択した条件の図と式だけを表示する。
+function prepareInitialView() {
+
+    selectedPlateKey =
+        document.getElementById('metal-select').value;
+
+    selectedSolutionKey =
+        document.getElementById('solution-select').value;
+
+    const plate = METALS[selectedPlateKey];
+    const solution = METALS[selectedSolutionKey];
+
+    occursReaction = plate.rank > solution.rank;
+
+    metalAtoms = [];
+    solutionIons = [];
+    movingElectrons = [];
+    electronPool = [];
+    electronBank = 0;
+    currentOxidationAtom = null;
+    currentReductionIon = null;
+    reactionCount = 0;
+    reductionCount = 0;
+    phase = 'WAIT';
+    dialogueTimer = 0;
+    state = 'READY';
+    isPaused = false;
+
+    hideBubbles();
+    updateUIExplanation(plate, solution, occursReaction);
+    createMetalAtoms(plate);
+    createSolutionIons(solution, plate);
+
+    const statusBox = document.getElementById('status-display');
+    statusBox.className = 'status-box';
+    statusBox.innerText = '条件を選択して「反応開始」を押してください。';
+
+    const pauseButton = document.getElementById('pause-btn');
+    pauseButton.disabled = true;
+    pauseButton.textContent = '一時停止';
+
+    drawScene();
+}
+
+function togglePause() {
+
+    if (state === 'READY' || state === 'IDLE' || state === 'FINISHED') {
+        return;
+    }
+
+    const pauseButton = document.getElementById('pause-btn');
+
+    if (isPaused) {
+        isPaused = false;
+        pauseButton.textContent = '一時停止';
+        animId = requestAnimationFrame(loop);
+    } else {
+        isPaused = true;
+        if (animId !== null) {
+            cancelAnimationFrame(animId);
+            animId = null;
+        }
+        pauseButton.textContent = '再開';
+    }
 }
 
 /* =====================================
@@ -726,10 +814,15 @@ function loop() {
 
     drawScene();
 
-    if (state !== 'FINISHED') {
+    if (state !== 'FINISHED' && !isPaused) {
         animId = requestAnimationFrame(loop);
     } else {
         animId = null;
+        if (state === 'FINISHED') {
+            const pauseButton = document.getElementById('pause-btn');
+            pauseButton.disabled = true;
+            pauseButton.textContent = '一時停止';
+        }
     }
 }
 
@@ -1150,6 +1243,12 @@ function updateReaction() {
 function finishSimulation() {
 
     state = 'FINISHED';
+
+    const pauseButton = document.getElementById('pause-btn');
+    if (pauseButton) {
+        pauseButton.disabled = true;
+        pauseButton.textContent = '一時停止';
+    }
 
     const statusBox =
         document.getElementById('status-display');
@@ -1680,7 +1779,7 @@ function updateUIExplanation(plate,solution,occurs) {
    26. 起動
 ===================================== */
 
-window.addEventListener('load',initSimulation);
+window.addEventListener('load',prepareInitialView);
 
 </script>
 
