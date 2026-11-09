@@ -93,6 +93,7 @@ select {
     border-radius:6px;
     border:1px solid var(--border);
     background:white;
+    color:#1e293b;
 }
 .btn-start {
     padding:9px 24px;
@@ -221,6 +222,51 @@ canvas {
     border-left:4px solid var(--primary);
     overflow-wrap:anywhere;
 }
+
+.particle-diagram {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    flex-wrap:wrap;
+    gap:10px;
+    padding:12px 8px;
+    margin-top:6px;
+    background:#fff;
+    border:1px solid #e2e8f0;
+    border-radius:7px;
+    min-height:92px;
+}
+.diagram-group {
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    gap:5px;
+    flex-wrap:wrap;
+}
+.diagram-particle-svg {
+    display:block;
+    flex:none;
+}
+.diagram-electron-svg {
+    display:block;
+    flex:none;
+}
+.diagram-plus,.diagram-arrow {
+    font-size:20px;
+    font-weight:bold;
+    color:#334155;
+}
+.diagram-caption {
+    width:100%;
+    text-align:center;
+    color:#64748b;
+    font-size:.78rem;
+    margin-top:2px;
+}
+@media(max-width:600px) {
+    .particle-diagram {gap:6px;padding:9px 4px;}
+}
+
 .info-text {
     font-size:.88rem;
     color:var(--text-sub);
@@ -1445,6 +1491,111 @@ function getOverallEq(p,s) {
 
 }
 
+
+/* =====================================
+   24-1. 反応式の粒子図
+===================================== */
+
+function diagramParticle(m, isIon) {
+    // シミュレーション本体と同じ半径・電子配置・色・記号でSVG化する
+    const radius = isIon ? ION_R : ATOM_R;
+    const size = radius * 2;
+    const filledHoles = isIon ? 0 : m.valency;
+    const offsets = getHoleOffsets(m.valency, radius);
+
+    const electronSvg = (x, y) => `
+        <circle cx="${radius+x}" cy="${radius+y}" r="${HOLE_R}"
+            fill="#ffffff" stroke="#0f172a" stroke-width="1.8" />
+        <path d="M ${radius+x-HOLE_R*0.5} ${radius+y} L ${radius+x+HOLE_R*0.5} ${radius+y}"
+            stroke="#0f172a" stroke-width="1.8" />
+    `;
+
+    const holeSvg = (x, y) => `
+        <circle cx="${radius+x}" cy="${radius+y}" r="${HOLE_R}"
+            fill="#ffffff" stroke="${m.stroke}" stroke-width="1.8" />
+    `;
+
+    const electrons = offsets.map((h, i) =>
+        i < filledHoles ? electronSvg(h.dx, h.dy) : holeSvg(h.dx, h.dy)
+    ).join('');
+
+    const symbol = isIon ? m.ionSymbol : m.symbol;
+
+    return `
+        <svg class="diagram-particle-svg" width="${size}" height="${size}"
+            viewBox="0 0 ${size} ${size}" role="img" aria-label="${symbol}">
+            <circle cx="${radius}" cy="${radius}" r="${radius}"
+                fill="${m.color}" stroke="${m.stroke}" stroke-width="2.5" />
+            ${electrons}
+            <text x="${radius-radius*0.15}" y="${radius+radius*0.1}"
+                fill="${m.textColor}" font-family="Arial, sans-serif"
+                font-size="15" font-weight="bold" text-anchor="middle"
+                dominant-baseline="middle">${symbol}</text>
+        </svg>
+    `;
+}
+
+function diagramElectronGroup(count) {
+    return Array.from({length:count}, () => `
+        <svg class="diagram-electron-svg" width="${HOLE_R*2}" height="${HOLE_R*2}"
+            viewBox="0 0 ${HOLE_R*2} ${HOLE_R*2}" aria-label="電子">
+            <circle cx="${HOLE_R}" cy="${HOLE_R}" r="${HOLE_R}"
+                fill="#ffffff" stroke="#0f172a" stroke-width="1.8" />
+            <path d="M ${HOLE_R*0.5} ${HOLE_R} L ${HOLE_R*1.5} ${HOLE_R}"
+                stroke="#0f172a" stroke-width="1.8" />
+        </svg>
+    `).join('');
+}
+
+function diagramGroup(particles) {
+    return `<div class="diagram-group">${particles}</div>`;
+}
+
+function makeOxidationDiagram(m) {
+    return `
+        <div class="particle-diagram">
+            ${diagramGroup(diagramParticle(m,false))}
+            <span class="diagram-arrow">→</span>
+            ${diagramGroup(diagramParticle(m,true))}
+            <span class="diagram-plus">＋</span>
+            ${diagramGroup(diagramElectronGroup(m.valency))}
+            <div class="diagram-caption">金属原子が電子を放出し、陽イオンになる</div>
+        </div>
+    `;
+}
+
+function makeReductionDiagram(m) {
+    return `
+        <div class="particle-diagram">
+            ${diagramGroup(diagramParticle(m,true))}
+            <span class="diagram-plus">＋</span>
+            ${diagramGroup(diagramElectronGroup(m.valency))}
+            <span class="diagram-arrow">→</span>
+            ${diagramGroup(diagramParticle(m,false))}
+            <div class="diagram-caption">金属イオンが電子を受け取り、金属原子になる</div>
+        </div>
+    `;
+}
+
+function makeOverallDiagram(plate, solution) {
+    const common = gcd(plate.valency, solution.valency);
+    const plateCount = solution.valency / common;
+    const ionCount = plate.valency / common;
+    const repeat = (count, maker) => Array.from({length:count}, maker).join('');
+    return `
+        <div class="particle-diagram">
+            ${diagramGroup(repeat(plateCount, () => diagramParticle(plate,false)))}
+            <span class="diagram-plus">＋</span>
+            ${diagramGroup(repeat(ionCount, () => diagramParticle(solution,true)))}
+            <span class="diagram-arrow">→</span>
+            ${diagramGroup(repeat(plateCount, () => diagramParticle(plate,true)))}
+            <span class="diagram-plus">＋</span>
+            ${diagramGroup(repeat(ionCount, () => diagramParticle(solution,false)))}
+            <div class="diagram-caption">金属板の原子がイオンになり、水溶液中の金属イオンが金属原子として析出する</div>
+        </div>
+    `;
+}
+
 /* =====================================
    25. 説明画面
 ===================================== */
@@ -1497,6 +1648,7 @@ function updateUIExplanation(plate,solution,occurs) {
         <div class="equation-box">
             ${getOxidationEq(plate)}
         </div>
+        ${makeOxidationDiagram(plate)}
 
         <p style="margin-top:10px">
             <strong>
@@ -1507,6 +1659,7 @@ function updateUIExplanation(plate,solution,occurs) {
         <div class="equation-box">
             ${getReductionEq(solution)}
         </div>
+        ${makeReductionDiagram(solution)}
 
         <p style="margin-top:10px">
             <strong>
@@ -1517,6 +1670,7 @@ function updateUIExplanation(plate,solution,occurs) {
         <div class="equation-box">
             ${getOverallEq(plate,solution)}
         </div>
+        ${makeOverallDiagram(plate,solution)}
 
     `;
 
