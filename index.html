@@ -1,0 +1,1534 @@
+
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>中3理科：イオンのなりやすさと電池</title>
+
+<style>
+:root {
+    --primary:#2563eb;
+    --primary-hover:#1d4ed8;
+    --bg-color:#f8fafc;
+    --card-bg:#fff;
+    --text-main:#1e293b;
+    --text-sub:#64748b;
+    --border:#cbd5e1;
+}
+* {
+    box-sizing:border-box;
+    margin:0;
+    padding:0;
+    font-family:'Helvetica Neue',Arial,sans-serif;
+}
+body {
+    background:var(--bg-color);
+    color:var(--text-main);
+    padding:20px;
+    max-width:1100px;
+    margin:0 auto;
+}
+header {
+    text-align:center;
+    margin-bottom:20px;
+}
+h1 {
+    font-size:1.6rem;
+    color:#0f172a;
+    margin-bottom:8px;
+}
+.nav-tabs {
+    display:flex;
+    gap:10px;
+    margin-bottom:20px;
+    border-bottom:2px solid var(--border);
+    padding-bottom:5px;
+}
+.tab-btn {
+    padding:10px 20px;
+    font-size:1rem;
+    font-weight:bold;
+    border:none;
+    background:none;
+    border-radius:8px 8px 0 0;
+    color:var(--text-sub);
+}
+.tab-btn.active {
+    background:var(--primary);
+    color:white;
+}
+.tab-btn.disabled {
+    opacity:.5;
+}
+.container {
+    background:var(--card-bg);
+    border-radius:12px;
+    padding:20px;
+    box-shadow:0 4px 6px -1px rgba(0,0,0,.1);
+}
+.controls {
+    display:flex;
+    flex-wrap:wrap;
+    gap:15px;
+    align-items:center;
+    justify-content:center;
+    background:#f1f5f9;
+    padding:15px;
+    border-radius:8px;
+    margin-bottom:20px;
+}
+.control-group {
+    display:flex;
+    align-items:center;
+    gap:8px;
+}
+label {
+    font-weight:bold;
+    font-size:.95rem;
+}
+select {
+    padding:8px 12px;
+    font-size:1rem;
+    border-radius:6px;
+    border:1px solid var(--border);
+    background:white;
+}
+.btn-start {
+    padding:9px 24px;
+    font-size:1rem;
+    font-weight:bold;
+    color:white;
+    background:var(--primary);
+    border:none;
+    border-radius:6px;
+    cursor:pointer;
+}
+.btn-start:hover {
+    background:var(--primary-hover);
+}
+.simulation-grid {
+    display:grid;
+    grid-template-columns:1fr;
+    gap:20px;
+}
+@media(min-width:850px) {
+    .simulation-grid {
+        grid-template-columns:minmax(0,540px) 1fr;
+    }
+}
+.stage-container {
+    position:relative;
+    width:100%;
+    max-width:540px;
+    aspect-ratio:540/480;
+    margin:0 auto;
+    border:3px solid #334155;
+    border-radius:12px;
+    overflow:hidden;
+    background:#e0f2fe;
+}
+canvas {
+    display:block;
+    width:100%;
+    height:100%;
+}
+.speech-bubble {
+    position:absolute;
+    background:white;
+    border:2.5px solid #0f172a;
+    border-radius:12px;
+    padding:10px 14px;
+    font-size:clamp(.65rem,2.3vw,.9rem);
+    font-weight:bold;
+    color:#0f172a;
+    box-shadow:0 4px 10px rgba(0,0,0,.15);
+    z-index:100;
+    pointer-events:none;
+    max-width:38%;
+    text-align:center;
+}
+.bubble-left {
+    top:25%;
+    left:36%;
+}
+.bubble-right {
+    top:42%;
+    left:44%;
+}
+.bubble-left::after {
+    content:'';
+    position:absolute;
+    top:50%;
+    left:-12px;
+    margin-top:-6px;
+    border-width:6px 12px 6px 0;
+    border-style:solid;
+    border-color:transparent white transparent transparent;
+}
+.bubble-right::after {
+    content:'';
+    position:absolute;
+    top:50%;
+    right:-12px;
+    margin-top:-6px;
+    border-width:6px 0 6px 12px;
+    border-style:solid;
+    border-color:transparent transparent transparent white;
+}
+.explanation-panel {
+    display:flex;
+    flex-direction:column;
+    gap:15px;
+}
+.card {
+    border:1px solid var(--border);
+    border-radius:8px;
+    padding:15px;
+    background:white;
+}
+.card h3 {
+    font-size:1.05rem;
+    margin-bottom:10px;
+    color:#334155;
+    border-bottom:2px solid #f1f5f9;
+    padding-bottom:5px;
+}
+.status-box {
+    font-size:1.05rem;
+    font-weight:bold;
+    padding:10px;
+    border-radius:6px;
+    text-align:center;
+}
+.status-no-change {
+    background:#fef2f2;
+    color:#991b1b;
+    border:1px solid #fecaca;
+}
+.status-reaction {
+    background:#f0fdf4;
+    color:#166534;
+    border:1px solid #bbf7d0;
+}
+.equation-box {
+    font-family:'Courier New',monospace;
+    font-size:1rem;
+    background:#f8fafc;
+    padding:10px 12px;
+    border-radius:6px;
+    margin-top:5px;
+    border-left:4px solid var(--primary);
+    overflow-wrap:anywhere;
+}
+.info-text {
+    font-size:.88rem;
+    color:var(--text-sub);
+    line-height:1.7;
+}
+@media(max-width:600px) {
+    body {padding:10px;}
+    .container {padding:10px;}
+    .controls {gap:10px;}
+    .control-group {width:100%;justify-content:space-between;}
+    .control-group select {max-width:68%;}
+    .btn-start {width:100%;}
+    .nav-tabs {gap:3px;}
+    .tab-btn {padding:9px 7px;font-size:.78rem;}
+}
+</style>
+</head>
+
+<body>
+
+<header>
+    <h1>中3理科：イオンのなりやすさと電池</h1>
+</header>
+
+<div class="nav-tabs">
+    <button class="tab-btn active">
+        ① イオンのなりやすさ（ミクロモデル）
+    </button>
+    <button class="tab-btn disabled" title="準備中">
+        ② 電池の仕組み（準備中）
+    </button>
+</div>
+
+<div id="ion-mode" class="container">
+
+    <div class="controls">
+
+        <div class="control-group">
+            <label for="metal-select">金属板：</label>
+            <select id="metal-select">
+                <option value="Mg">マグネシウム (Mg)</option>
+                <option value="Al">アルミニウム (Al)</option>
+                <option value="Zn" selected>亜鉛 (Zn)</option>
+                <option value="Cu">銅 (Cu)</option>
+                <option value="Ag">銀 (Ag)</option>
+            </select>
+        </div>
+
+        <div class="control-group">
+            <label for="solution-select">水溶液：</label>
+            <select id="solution-select">
+                <option value="Cu" selected>硫酸銅水溶液 (Cu²⁺)</option>
+                <option value="Zn">硫酸亜鉛水溶液 (Zn²⁺)</option>
+                <option value="Mg">硫酸マグネシウム水溶液 (Mg²⁺)</option>
+                <option value="Al">硫酸アルミニウム水溶液 (Al³⁺)</option>
+                <option value="Ag">硫酸銀水溶液 (Ag⁺)</option>
+            </select>
+        </div>
+
+        <button id="start-btn" class="btn-start"
+            onclick="initSimulation()">
+            実験開始
+        </button>
+    </div>
+
+    <div class="simulation-grid">
+
+        <div class="stage-container">
+
+            <canvas id="simCanvas" width="540" height="480"></canvas>
+
+            <div id="bubble-metal"
+                class="speech-bubble bubble-left"
+                style="display:none"></div>
+
+            <div id="bubble-ion"
+                class="speech-bubble bubble-right"
+                style="display:none"></div>
+
+        </div>
+
+        <div class="explanation-panel">
+
+            <div class="card">
+                <h3>実験結果</h3>
+                <div id="status-display" class="status-box">
+                    条件を選択して「実験開始」を押してください。
+                </div>
+            </div>
+
+            <div class="card">
+                <h3>化学反応式</h3>
+                <div id="equation-container">
+                    <p style="color:var(--text-sub)">
+                        実験を開始するとここに反応式が表示されます。
+                    </p>
+                </div>
+            </div>
+
+            <div class="card info-text">
+                <h3>イオン化傾向の順序</h3>
+
+                <p style="text-align:center;margin:6px 0;font-weight:bold;color:var(--primary);font-size:1.05rem">
+                    Mg ＞ Al ＞ Zn ＞ Cu ＞ Ag
+                </p>
+
+                <p>
+                    ・<strong>金属板の金属 ＞ 水溶液中の金属</strong>
+                    のとき：金属板の原子が電子を放出してイオンになり、
+                    水溶液中のイオンが電子を受け取って原子に戻ります。
+                </p>
+
+                <p>
+                    ・<strong>金属板の金属 ＜ 水溶液中の金属</strong>
+                    のとき：変化は起こりません。
+                </p>
+
+                <p style="margin-top:8px">
+                    ※粒子の大きさや移動速度は、現象を見やすくするための模式的な表現です。
+                </p>
+            </div>
+
+            <div class="card info-text">
+                <h3>電子の受け渡し状況</h3>
+                <div id="electron-status">
+                    電子の移動はまだ始まっていません。
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+<script>
+'use strict';
+
+/* =====================================
+   1. 金属データ
+===================================== */
+
+const METALS = {
+    Mg: {
+        name:'マグネシウム',
+        symbol:'Mg',
+        rank:5,
+        valency:2,
+        ionSymbol:'Mg²⁺',
+        color:'#cbd5e1',
+        stroke:'#475569',
+        textColor:'#0f172a'
+    },
+    Al: {
+        name:'アルミニウム',
+        symbol:'Al',
+        rank:4,
+        valency:3,
+        ionSymbol:'Al³⁺',
+        color:'#94a3b8',
+        stroke:'#334155',
+        textColor:'#0f172a'
+    },
+    Zn: {
+        name:'亜鉛',
+        symbol:'Zn',
+        rank:3,
+        valency:2,
+        ionSymbol:'Zn²⁺',
+        color:'#71717a',
+        stroke:'#27272a',
+        textColor:'#ffffff'
+    },
+    Cu: {
+        name:'銅',
+        symbol:'Cu',
+        rank:2,
+        valency:2,
+        ionSymbol:'Cu²⁺',
+        color:'#d97706',
+        stroke:'#92400e',
+        textColor:'#ffffff'
+    },
+    Ag: {
+        name:'銀',
+        symbol:'Ag',
+        rank:1,
+        valency:1,
+        ionSymbol:'Ag⁺',
+        color:'#e2e8f0',
+        stroke:'#64748b',
+        textColor:'#0f172a'
+    }
+};
+
+/* =====================================
+   2. 基本設定
+===================================== */
+
+const canvas = document.getElementById('simCanvas');
+const ctx = canvas.getContext('2d');
+
+const WIDTH = 540;
+const HEIGHT = 480;
+
+const PLATE_WIDTH = 180;
+const ATOM_R = 38;
+const ION_R = 25;
+const HOLE_R = 10;
+
+let animId = null;
+
+let metalAtoms = [];
+let solutionIons = [];
+
+let movingElectrons = [];
+let electronPool = [];
+
+let selectedPlateKey = 'Zn';
+let selectedSolutionKey = 'Cu';
+
+let occursReaction = false;
+
+let state = 'IDLE';
+let phase = 'WAIT';
+
+let electronBank = 0;
+
+let currentOxidationAtom = null;
+let currentReductionIon = null;
+
+let dialogueTimer = 0;
+
+let reactionCount = 0;
+let reductionCount = 0;
+
+/* =====================================
+   3. 初期化
+===================================== */
+
+function initSimulation() {
+
+    if (animId !== null) {
+        cancelAnimationFrame(animId);
+        animId = null;
+    }
+
+    selectedPlateKey =
+        document.getElementById('metal-select').value;
+
+    selectedSolutionKey =
+        document.getElementById('solution-select').value;
+
+    const plate = METALS[selectedPlateKey];
+    const solution = METALS[selectedSolutionKey];
+
+    occursReaction = plate.rank > solution.rank;
+
+    metalAtoms = [];
+    solutionIons = [];
+    movingElectrons = [];
+    electronPool = [];
+
+    electronBank = 0;
+
+    currentOxidationAtom = null;
+    currentReductionIon = null;
+
+    reactionCount = 0;
+    reductionCount = 0;
+
+    phase = 'WAIT';
+    dialogueTimer = 0;
+
+    hideBubbles();
+
+    updateUIExplanation(plate, solution, occursReaction);
+
+    createMetalAtoms(plate);
+    createSolutionIons(solution, plate);
+
+    if (occursReaction) {
+        state = 'DIALOGUE';
+        showDialogue(plate, solution, true);
+    } else {
+        state = 'DIALOGUE';
+        showDialogue(plate, solution, false);
+    }
+
+    drawScene();
+    loop();
+}
+
+/* =====================================
+   4. 金属板の原子を作成
+===================================== */
+
+function createMetalAtoms(plate) {
+
+    let id = 0;
+
+    const positions = [
+        [48,100],
+        [128,100],
+        [48,240],
+        [128,240],
+        [48,380],
+        [128,380]
+    ];
+
+    positions.forEach(([x,y]) => {
+
+        metalAtoms.push({
+            id:id++,
+
+            x,
+            y,
+
+            // 元の位置を固定して記録
+            originX:x,
+            originY:y,
+
+            metalKey:selectedPlateKey,
+
+            symbol:plate.symbol,
+            ionSymbol:plate.ionSymbol,
+
+            valency:plate.valency,
+
+            status:'ATOM',
+
+            filledHoles:plate.valency
+        });
+
+    });
+}
+
+/* =====================================
+   5. 水溶液中のイオンを作成
+===================================== */
+
+function createSolutionIons(solution, plate) {
+
+    const totalElectrons = 6 * plate.valency;
+
+    const targetCount =
+        totalElectrons / solution.valency;
+
+    const columns = 3;
+    const rows = Math.ceil(targetCount / columns);
+
+    for (let i = 0; i < targetCount; i++) {
+
+        const col = i % columns;
+        const row = Math.floor(i / columns);
+
+        const x = 245 + col * 120 + (Math.random()-0.5)*12;
+        const y = 75 + row * (340 / Math.max(1,rows-1)) + (Math.random()-0.5)*10;
+
+        solutionIons.push({
+
+            id:i,
+
+            x,
+            y,
+
+            vx:(Math.random()-0.5)*0.7,
+            vy:(Math.random()-0.5)*0.7,
+
+            metalKey:selectedSolutionKey,
+
+            symbol:solution.ionSymbol,
+            atomSymbol:solution.symbol,
+
+            valency:solution.valency,
+
+            status:'ION',
+
+            source:'solution',
+
+            filledHoles:0
+
+        });
+    }
+}
+
+/* =====================================
+   6. 会話表示
+===================================== */
+
+function showDialogue(plate, solution, occurs) {
+
+    const bMetal = document.getElementById('bubble-metal');
+    const bIon = document.getElementById('bubble-ion');
+
+    if (occurs) {
+
+        bMetal.innerText =
+            '早く電子を捨ててイオンになりたい！';
+
+        bIon.innerText =
+            '電子を受け取って原子に戻りたい！';
+
+    } else {
+
+        bMetal.innerText =
+            '別に電子を捨てなくてもいいや';
+
+        bIon.innerText =
+            '電子を受け取る必要はないみたい';
+
+    }
+
+    bMetal.style.display = 'block';
+    bIon.style.display = 'block';
+
+}
+
+function hideBubbles() {
+
+    document.getElementById('bubble-metal').style.display='none';
+    document.getElementById('bubble-ion').style.display='none';
+
+}
+
+/* =====================================
+   7. メインループ
+===================================== */
+
+function loop() {
+
+    ctx.clearRect(0,0,WIDTH,HEIGHT);
+
+    if (state === 'DIALOGUE') {
+
+        dialogueTimer++;
+
+        if (dialogueTimer > 150) {
+
+            hideBubbles();
+
+            if (occursReaction) {
+                state = 'REACTING';
+                phase = 'WAIT';
+            } else {
+                state = 'FINISHED';
+            }
+        }
+
+    }
+
+    if (state === 'REACTING') {
+
+        updateReaction();
+
+    }
+
+    updateFreeIonMovement();
+
+    drawScene();
+
+    if (state !== 'FINISHED') {
+        animId = requestAnimationFrame(loop);
+    } else {
+        animId = null;
+    }
+}
+
+/* =====================================
+   8. 水溶液中の粒子の移動
+===================================== */
+
+function updateFreeIonMovement() {
+
+    solutionIons.forEach(ion => {
+
+        // 水溶液中を動くのはイオンだけ。
+        // 還元されて金属原子になった粒子（ATOM）は表面に固定する。
+        if (ion.status !== 'ION') {
+            return;
+        }
+
+        ion.x += ion.vx;
+        ion.y += ion.vy;
+
+        if (ion.x - ION_R < PLATE_WIDTH + 15 ||
+            ion.x + ION_R > WIDTH - 15) {
+
+            ion.vx *= -1;
+
+        }
+
+        if (ion.y - ION_R < 45 ||
+            ion.y + ION_R > HEIGHT - 15) {
+
+            ion.vy *= -1;
+
+        }
+
+        if (Math.random() < 0.025) {
+
+            ion.vx += (Math.random()-0.5)*0.2;
+            ion.vy += (Math.random()-0.5)*0.2;
+
+            ion.vx = Math.max(-0.8,Math.min(0.8,ion.vx));
+            ion.vy = Math.max(-0.8,Math.min(0.8,ion.vy));
+
+        }
+
+    });
+}
+
+/* =====================================
+   9. 電子の待機場所
+===================================== */
+
+function poolPosition(index) {
+
+    // 電子は金属板の外側の待機場所ではなく、金属板の表面に並べる。
+    return {
+        x:PLATE_WIDTH - HOLE_R,
+        y:55 + index * 20
+    };
+
+}
+
+/* =====================================
+   10. 電子の移動
+===================================== */
+
+function updateMovingElectrons() {
+
+    movingElectrons.forEach(e => {
+
+        e.x += (e.targetX-e.x)*0.13;
+        e.y += (e.targetY-e.y)*0.13;
+
+    });
+
+}
+
+function allElectronsArrived() {
+
+    return movingElectrons.every(e => {
+
+        return Math.abs(e.x-e.targetX)<1.5 &&
+               Math.abs(e.y-e.targetY)<1.5;
+
+    });
+
+}
+
+/* =====================================
+   11. 酸化開始
+===================================== */
+
+function startOxidation(atom) {
+
+    currentOxidationAtom = atom;
+
+    atom.status = 'DISSOLVING';
+
+    atom.symbol = atom.ionSymbol;
+
+    atom.filledHoles = 0;
+
+    const offsets = getHoleOffsets(atom.valency,ATOM_R);
+
+    movingElectrons = [];
+
+    for (let i=0; i<atom.valency; i++) {
+
+        const startX = atom.x + offsets[i].dx;
+        const startY = atom.y + offsets[i].dy;
+
+        const target = poolPosition(electronBank+i);
+
+        movingElectrons.push({
+
+            x:startX,
+            y:startY,
+
+            targetX:target.x,
+            targetY:target.y,
+
+            type:'TO_POOL'
+
+        });
+
+    }
+
+    reactionCount++;
+
+    phase = 'OXIDIZING';
+
+    updateElectronStatus(
+        `${atom.metalKey}原子が電子を${atom.valency}個放出しています。`
+    );
+
+}
+
+/* =====================================
+   12. 酸化した金属原子の移動
+===================================== */
+
+function updateOxidizingAtom() {
+
+    if (!currentOxidationAtom) return;
+
+    const atom = currentOxidationAtom;
+
+    atom.x += 1.8;
+
+    if (atom.x >= 225) {
+
+        atom.status = 'DISSOLVED';
+
+        // 元の原子が水溶液中にイオンとして存在する
+        solutionIons.push({
+
+            id:Date.now()+Math.random(),
+
+            x:atom.x,
+            y:atom.y,
+
+            vx:(Math.random()-0.5)*0.8,
+            vy:(Math.random()-0.5)*0.8,
+
+            metalKey:atom.metalKey,
+
+            symbol:atom.ionSymbol,
+            atomSymbol:METALS[atom.metalKey].symbol,
+
+            valency:atom.valency,
+
+            status:'ION',
+
+            source:'plate',
+
+            filledHoles:0
+
+        });
+
+        currentOxidationAtom = null;
+
+        phase = 'OXIDATION_ELECTRONS';
+
+    }
+
+}
+
+/* =====================================
+   13. 電子を待機場所に格納
+===================================== */
+
+function finishOxidation() {
+
+    movingElectrons.forEach((e,i) => {
+
+        const p = poolPosition(electronPool.length);
+
+        electronPool.push({
+
+            x:p.x,
+            y:p.y
+
+        });
+
+    });
+
+    electronBank += movingElectrons.length;
+
+    movingElectrons = [];
+
+    phase = 'WAIT';
+
+    updateElectronStatus(
+        `電子の待機数：${electronBank}個`
+    );
+
+}
+
+/* =====================================
+   14. 還元開始
+===================================== */
+
+function startReduction(ion) {
+
+    currentReductionIon = ion;
+    ion.status = 'MOVING';
+
+    // 先にイオン自身が金属板の表面まで移動する。
+    // 電子はこの段階では金属板表面に残しておく。
+    ion.targetX = PLATE_WIDTH + ION_R;
+    ion.targetY = 55 + reductionCount * 22;
+
+    phase = 'ION_APPROACHING';
+
+    updateElectronStatus(
+        `${ion.symbol}が金属板の表面に近づいています。電子はまだ金属板上にあります。`
+    );
+}
+
+/* イオンが金属板表面に到着してから電子を受け取る */
+function startElectronTransfer() {
+
+    const ion = currentReductionIon;
+    if (!ion) return;
+
+    const electronsNeeded = ion.valency;
+
+    // イオンが表面に到着した後で、必要な数だけ電子を移動させる。
+    const selectedElectrons = electronPool.splice(0,electronsNeeded);
+
+    movingElectrons = selectedElectrons.map(e => ({
+        x:e.x,
+        y:e.y,
+        targetX:ion.x,
+        targetY:ion.y,
+        type:'TO_ION'
+    }));
+
+    phase = 'REDUCING';
+
+    updateElectronStatus(
+        `${ion.symbol}が金属板表面で電子を${electronsNeeded}個受け取っています。`
+    );
+}
+
+function updateApproachingIon() {
+
+    const ion = currentReductionIon;
+    if (!ion) return;
+
+    ion.x += (ion.targetX - ion.x) * 0.08;
+    ion.y += (ion.targetY - ion.y) * 0.08;
+
+    if (Math.abs(ion.x - ion.targetX) < 1.5 &&
+        Math.abs(ion.y - ion.targetY) < 1.5) {
+
+        ion.x = ion.targetX;
+        ion.y = ion.targetY;
+        startElectronTransfer();
+    }
+}
+
+/* =====================================
+   15. 還元完了
+===================================== */
+
+function finishReduction() {
+
+    const ion = currentReductionIon;
+
+    if (!ion) return;
+
+    ion.status = 'ATOM';
+
+    ion.symbol = ion.atomSymbol;
+
+    ion.filledHoles = ion.valency;
+
+    // 中性の金属原子になった粒子は、到着した金属板表面に固定する。
+    ion.x = ion.targetX;
+    ion.y = ion.targetY;
+    ion.vx = 0;
+    ion.vy = 0;
+
+    electronBank -= ion.valency;
+
+    reductionCount++;
+
+    currentReductionIon = null;
+
+    movingElectrons = [];
+
+    phase = 'WAIT';
+
+    updateElectronStatus(
+        `還元完了。待機電子：${electronBank}個`
+    );
+
+}
+
+/* =====================================
+   16. 反応管理
+===================================== */
+
+function updateReaction() {
+
+    updateMovingElectrons();
+
+    switch (phase) {
+
+        case 'WAIT': {
+
+            const availableIons = solutionIons.filter(
+                ion => ion.source === 'solution' &&
+                       ion.status === 'ION'
+            );
+
+            const remainingAtoms = metalAtoms.filter(
+                atom => atom.status === 'ATOM'
+            );
+
+            // 電子が必要数以上あれば還元を優先
+            if (availableIons.length > 0 &&
+                electronBank >= availableIons[0].valency) {
+
+                startReduction(availableIons[0]);
+
+                break;
+            }
+
+            // 電子が不足している場合は次の金属原子を酸化
+            if (remainingAtoms.length > 0) {
+
+                startOxidation(remainingAtoms[0]);
+
+                break;
+            }
+
+            // すべての反応が終了したか確認
+            const unfinishedIons = solutionIons.some(
+                ion => ion.source === 'solution' &&
+                       (ion.status === 'ION' || ion.status === 'MOVING')
+            );
+
+            if (!unfinishedIons &&
+                electronBank === 0 &&
+                movingElectrons.length === 0) {
+
+                finishSimulation();
+
+            }
+
+            break;
+        }
+
+        case 'OXIDIZING': {
+
+            updateOxidizingAtom();
+
+            break;
+        }
+
+        case 'OXIDATION_ELECTRONS': {
+
+            if (allElectronsArrived()) {
+
+                finishOxidation();
+
+            }
+
+            break;
+        }
+
+        case 'ION_APPROACHING': {
+
+            updateApproachingIon();
+            break;
+        }
+
+        case 'REDUCING': {
+
+            if (allElectronsArrived()) {
+
+                finishReduction();
+
+            }
+
+            break;
+        }
+
+    }
+
+}
+
+/* =====================================
+   17. 実験終了
+===================================== */
+
+function finishSimulation() {
+
+    state = 'FINISHED';
+
+    const statusBox =
+        document.getElementById('status-display');
+
+    statusBox.className =
+        'status-box status-reaction';
+
+    statusBox.innerText =
+        'すべての反応が完了しました。';
+
+    updateElectronStatus(
+        `酸化した原子：${reactionCount}個 / 還元されたイオン：${reductionCount}個 / 残った電子：0個`
+    );
+
+}
+
+/* =====================================
+   18. 電子状況表示
+===================================== */
+
+function updateElectronStatus(message) {
+
+    document.getElementById('electron-status').innerText =
+        message;
+
+}
+
+/* =====================================
+   19. 描画
+===================================== */
+
+function drawScene() {
+
+    // 水溶液
+    ctx.fillStyle = '#e0f2fe';
+    ctx.fillRect(0,0,WIDTH,HEIGHT);
+
+    // 金属板
+    ctx.fillStyle = '#cbd5e1';
+    ctx.fillRect(0,0,PLATE_WIDTH,HEIGHT);
+
+    ctx.strokeStyle = '#94a3b8';
+    ctx.lineWidth = 2;
+    ctx.strokeRect(0,0,PLATE_WIDTH,HEIGHT);
+
+    // 穴の描画：原子の元の位置に固定
+    metalAtoms.forEach(atom => {
+
+        if (atom.status === 'DISSOLVING' ||
+            atom.status === 'DISSOLVED') {
+
+            ctx.beginPath();
+
+            ctx.arc(
+                atom.originX,
+                atom.originY,
+                ATOM_R,
+                0,
+                Math.PI*2
+            );
+
+            ctx.fillStyle = '#e0f2fe';
+            ctx.fill();
+
+            ctx.strokeStyle = '#64748b';
+            ctx.lineWidth = 2.5;
+            ctx.stroke();
+
+        }
+
+    });
+
+    // 金属板と水溶液の境界
+    ctx.beginPath();
+    ctx.moveTo(PLATE_WIDTH,0);
+    ctx.lineTo(PLATE_WIDTH,HEIGHT);
+
+    ctx.strokeStyle = '#0284c7';
+    ctx.lineWidth = 3.5;
+    ctx.stroke();
+
+    // 見出し
+    ctx.fillStyle = '#475569';
+    ctx.font = 'bold 14px Arial';
+
+    ctx.fillText('【金属板】',25,32);
+    ctx.fillText('【水溶液中】',230,32);
+
+    // 金属板中の原子
+    metalAtoms.forEach(atom => {
+
+        if (atom.status === 'ATOM' ||
+            atom.status === 'DISSOLVING') {
+
+            const m = METALS[atom.metalKey];
+
+            drawCustomParticle(
+                atom.x,
+                atom.y,
+                ATOM_R,
+                atom.symbol,
+                atom.valency,
+                atom.filledHoles,
+                m.color,
+                m.stroke,
+                m.textColor
+            );
+
+        }
+
+    });
+
+    // 水溶液中のイオン・原子
+    solutionIons.forEach(ion => {
+
+        const m = METALS[ion.metalKey];
+
+        drawCustomParticle(
+            ion.x,
+            ion.y,
+            ION_R,
+            ion.symbol,
+            ion.valency,
+            ion.filledHoles,
+            m.color,
+            m.stroke,
+            m.textColor
+        );
+
+    });
+
+    // 待機中の電子
+    electronPool.forEach(e => {
+
+        drawElectron(e.x,e.y,HOLE_R);
+
+    });
+
+    // 移動中の電子
+    movingElectrons.forEach(e => {
+
+        drawElectron(e.x,e.y,HOLE_R);
+
+    });
+
+}
+
+/* =====================================
+   20. 電子の位置
+===================================== */
+
+function getHoleOffsets(valency,radius) {
+
+    if (valency === 1) {
+
+        return [
+            {dx:radius*0.45,dy:-radius*0.45}
+        ];
+
+    }
+
+    if (valency === 2) {
+
+        return [
+            {dx:radius*0.25,dy:-radius*0.55},
+            {dx:radius*0.55,dy:-radius*0.25}
+        ];
+
+    }
+
+    return [
+        {dx:radius*0.1,dy:-radius*0.6},
+        {dx:radius*0.45,dy:-radius*0.45},
+        {dx:radius*0.6,dy:-radius*0.1}
+    ];
+
+}
+
+/* =====================================
+   21. 粒子描画
+===================================== */
+
+function drawCustomParticle(
+    x,y,radius,symbol,valency,
+    filledHoles,fillColor,strokeColor,textColor
+) {
+
+    ctx.save();
+
+    ctx.translate(x,y);
+
+    ctx.beginPath();
+    ctx.arc(0,0,radius,0,Math.PI*2);
+
+    ctx.fillStyle = fillColor;
+    ctx.fill();
+
+    ctx.strokeStyle = strokeColor;
+    ctx.lineWidth = 2.5;
+    ctx.stroke();
+
+    const offsets = getHoleOffsets(valency,radius);
+
+    for (let i=0;i<valency;i++) {
+
+        const h = offsets[i];
+
+        if (i<filledHoles) {
+
+            drawElectron(h.dx,h.dy,HOLE_R);
+
+        } else {
+
+            ctx.beginPath();
+
+            ctx.arc(
+                h.dx,
+                h.dy,
+                HOLE_R,
+                0,
+                Math.PI*2
+            );
+
+            ctx.fillStyle = '#ffffff';
+            ctx.fill();
+
+            ctx.strokeStyle = strokeColor;
+            ctx.lineWidth = 1.8;
+            ctx.stroke();
+
+        }
+
+    }
+
+    ctx.fillStyle = textColor;
+
+    ctx.font = 'bold 15px Arial';
+    ctx.textAlign = 'center';
+    ctx.textBaseline = 'middle';
+
+    ctx.fillText(symbol,-radius*0.15,radius*0.1);
+
+    ctx.restore();
+
+}
+
+/* =====================================
+   22. 電子描画
+===================================== */
+
+function drawElectron(x,y,r) {
+
+    ctx.save();
+
+    ctx.beginPath();
+    ctx.arc(x,y,r,0,Math.PI*2);
+
+    ctx.fillStyle = '#ffffff';
+    ctx.fill();
+
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+
+    ctx.beginPath();
+
+    ctx.moveTo(x-r*0.5,y);
+    ctx.lineTo(x+r*0.5,y);
+
+    ctx.strokeStyle = '#0f172a';
+    ctx.lineWidth = 1.8;
+    ctx.stroke();
+
+    ctx.restore();
+
+}
+
+/* =====================================
+   23. 係数計算
+===================================== */
+
+function gcd(a,b) {
+
+    while (b !== 0) {
+
+        const t = b;
+        b = a % b;
+        a = t;
+
+    }
+
+    return a;
+
+}
+
+function coefficient(n) {
+
+    return n === 1 ? '' : String(n);
+
+}
+
+/* =====================================
+   24. 化学反応式
+===================================== */
+
+function getOxidationEq(m) {
+
+    const e = m.valency === 1 ?
+        'e⁻' :
+        m.valency + 'e⁻';
+
+    return `${m.symbol} → ${m.ionSymbol} + ${e}`;
+
+}
+
+function getReductionEq(m) {
+
+    const e = m.valency === 1 ?
+        'e⁻' :
+        m.valency + 'e⁻';
+
+    return `${m.ionSymbol} + ${e} → ${m.symbol}`;
+
+}
+
+function getOverallEq(p,s) {
+
+    const common = gcd(p.valency,s.valency);
+
+    const plateCount = s.valency/common;
+    const ionCount = p.valency/common;
+
+    return (
+        `${coefficient(plateCount)}${p.symbol} + ` +
+        `${coefficient(ionCount)}${s.ionSymbol} → ` +
+        `${coefficient(plateCount)}${p.ionSymbol} + ` +
+        `${coefficient(ionCount)}${s.symbol}`
+    );
+
+}
+
+/* =====================================
+   25. 説明画面
+===================================== */
+
+function updateUIExplanation(plate,solution,occurs) {
+
+    const statusBox =
+        document.getElementById('status-display');
+
+    const eqContainer =
+        document.getElementById('equation-container');
+
+    if (!occurs) {
+
+        statusBox.className =
+            'status-box status-no-change';
+
+        statusBox.innerText = '変化なし';
+
+        eqContainer.innerHTML = `
+            <p style="margin-bottom:8px">
+                金属板の金属よりも、水溶液中の金属イオンの方が
+                イオンになりやすいため、電子の受け渡しは起こりません。
+            </p>
+            <div class="equation-box">
+                化学反応なし
+            </div>
+        `;
+
+        updateElectronStatus('電子の移動はありません。');
+
+        return;
+
+    }
+
+    statusBox.className =
+        'status-box status-reaction';
+
+    statusBox.innerText =
+        '変化あり（電子の受け渡しが進行中）';
+
+    eqContainer.innerHTML = `
+
+        <p>
+            <strong>
+                ① 酸化反応（金属原子が電子を放出する）
+            </strong>
+        </p>
+
+        <div class="equation-box">
+            ${getOxidationEq(plate)}
+        </div>
+
+        <p style="margin-top:10px">
+            <strong>
+                ② 還元反応（水溶液中のイオンが電子を受け取る）
+            </strong>
+        </p>
+
+        <div class="equation-box">
+            ${getReductionEq(solution)}
+        </div>
+
+        <p style="margin-top:10px">
+            <strong>
+                ③ 全体の化学反応式
+            </strong>
+        </p>
+
+        <div class="equation-box">
+            ${getOverallEq(plate,solution)}
+        </div>
+
+    `;
+
+}
+
+/* =====================================
+   26. 起動
+===================================== */
+
+window.addEventListener('load',initSimulation);
+
+</script>
+
+</body>
+</html>
